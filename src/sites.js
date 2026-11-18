@@ -154,7 +154,8 @@ export async function registerSite(req, res) {
   const alias = sanitizeAlias(body.alias);
   if (!alias || !/^site_[A-Za-z0-9_-]{8,80}$/.test(siteId) || !/^[a-f0-9]{64}$/i.test(secret))
     return send(res, 400, { connected: false, message: "Invalid site credentials or alias." });
-  const url = new URL(baseUrl);
+  let url;
+  try { url = new URL(baseUrl); } catch { return send(res, 400, { connected: false, message: "Invalid WordPress URL." }); }
   if (url.protocol !== "https:" || url.pathname !== "/" || url.search || url.hash) return send(res, 400, { connected: false, message: "Use the HTTPS WordPress origin URL." });
   if (Object.hasOwn(staticSites(), alias)) return send(res, 409, { connected: false, message: "Alias reserved by server configuration." });
   const candidate = { baseUrl, siteId, secret, siteName: String(body.site_name || "").slice(0, 160) };
